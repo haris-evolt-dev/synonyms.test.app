@@ -6,11 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:converters="using:Synonyms.Test.App.Converters"
     mc:Ignorable="d"
     d:DesignWidth="800"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-    
+
     <Page.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
         <DataTemplate x:Key="WideSynonymItemTemplate">
             <Grid Height="35"
                   Margin="0">
@@ -70,6 +72,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -88,14 +91,15 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Name="txtUrl1"
+                <TextBox Name="txtWord"
                          Text="{x:Bind ViewModel.Name, Mode=TwoWay}"
                          TextWrapping="NoWrap"
                          HorizontalAlignment="Stretch"
                          AcceptsReturn="False"/>
                 <Button Grid.Column="1"
                         Click="btnAddWord_Click"
-                        ToolTipService.ToolTip="Add new word">
+                        ToolTipService.ToolTip="Add new word"
+                        IsEnabled="{x:Bind ViewModel.HasNoError, Mode=OneWay}">
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;"/>
                 </Button>
             </Grid>
@@ -117,14 +121,29 @@
                                 KeyDown="sbSynonyms_KeyDown"
                                 Text="{x:Bind Path=Synonym, Mode=TwoWay}"/>
                 <Button Grid.Column="1"
-                        Click="btnAddSynonym_Click">
+                        Click="btnAddSynonym_Click"
+                        IsEnabled="{x:Bind ViewModel.HasNoError, Mode=OneWay}">
                     <SymbolIcon Symbol="Add" />
                 </Button>
             </Grid>
 
-            <Grid Grid.Row="2"
+            <TextBlock Grid.Row="2"
+                       Grid.Column="1"
+                       Grid.ColumnSpan="2"
+                       Foreground="OrangeRed"
+                       Text="{x:Bind ViewModel.Error, Mode=TwoWay}" />
+            <TextBlock Grid.Row="3"
+                       Grid.Column="1"
+                       Grid.ColumnSpan="3"
+                       Visibility="{x:Bind ViewModel.HasNoSynonyms, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                       Text="No synonyms were added for this word"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Center"
+                       Margin="0 35"/>
+            <Grid Grid.Row="3"
                   Grid.Column="1"
-                  Grid.ColumnSpan="2">
+                  Grid.ColumnSpan="2"
+                  Visibility="{x:Bind ViewModel.HasSynonyms, Converter={StaticResource BoolToVis}, Mode=OneWay}">
                 <ListView ItemsSource="{x:Bind ViewModel.Synonyms}"
                           Name="WrapPanelContainer"
                           IsItemClickEnabled="True"
@@ -143,6 +162,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -150,13 +170,13 @@
             <TextBlock HorizontalAlignment="Left"
                        VerticalAlignment="Center"
                        Margin="9 3">Word:</TextBlock>
-                <TextBox Grid.Row="1"
-                         Name="txtUrl2"
+            <TextBox Grid.Row="1"
+                         Name="txtWord2"
                          Text="{x:Bind ViewModel.Name, Mode=TwoWay}"
                          TextWrapping="NoWrap"
                          HorizontalAlignment="Stretch"
                          AcceptsReturn="False"/>
-                <TextBlock Grid.Row="2"
+            <TextBlock Grid.Row="2"
                        HorizontalAlignment="Left"
                        VerticalAlignment="Center"
                        Margin="9 3">Synonyms:</TextBlock>
@@ -171,11 +191,23 @@
                                 KeyDown="sbSynonyms_KeyDown"
                                 Text="{x:Bind Path=Synonym, Mode=TwoWay}"/>
                 <Button Grid.Column="1"
-                        Click="btnAddSynonym_Click">
+                        Click="btnAddSynonym_Click"
+                        IsEnabled="{x:Bind ViewModel.HasNoError, Mode=OneWay}">
                     <SymbolIcon Symbol="Add" />
                 </Button>
             </Grid>
-            <ScrollViewer Grid.Row="4">
+            <TextBlock Grid.Row="4"
+                       Foreground="OrangeRed"
+                       Text="{x:Bind ViewModel.Error, Mode=TwoWay}" />
+            <TextBlock Grid.Row="5"
+                       Visibility="{x:Bind ViewModel.HasNoSynonyms, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+                       Text="No synonyms were added for this word"
+                       VerticalAlignment="Top"
+                       HorizontalAlignment="Center"
+                       Margin="0 35"/>
+            <ScrollViewer Grid.Row="5"
+                          Visibility="{x:Bind ViewModel.HasSynonyms, Converter={StaticResource BoolToVis}, Mode=OneWay}"
+>
                 <ListView ItemsSource="{x:Bind ViewModel.Synonyms}"
                           IsMultiSelectCheckBoxEnabled="False">
                     <ListView.ItemContainerStyle>
@@ -208,9 +240,10 @@
                 </ListView>
             </ScrollViewer>
 
-            <Button Grid.Row="5"
+            <Button Grid.Row="6"
                     HorizontalAlignment="Stretch"
-                    Click="btnAddWord_Click">
+                    Click="btnAddWord_Click"
+                    IsEnabled="{x:Bind ViewModel.HasNoError, Mode=OneWay}">
                 <StackPanel Orientation="Horizontal">
                     <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE73E;"/>
                     <TextBlock>Save</TextBlock>

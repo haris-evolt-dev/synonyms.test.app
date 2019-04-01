@@ -21,7 +21,7 @@ namespace Synonyms.Test.App.ViewModels
         /// <summary>
         /// Raises the <see cref="PropertyChanged"/> event.
         /// </summary>
-        protected void OnPropertyChanged([CallerMemberName] string changedPropertyName = "")
+        public void OnPropertyChanged([CallerMemberName] string changedPropertyName = "")
         {
             // The OnPropertyChanged is not virtual itself because of the [CallerMemberName] attribute which in case overridden should be put in every override - quite error-prone.
             this.PropertyChangedOverride(changedPropertyName);

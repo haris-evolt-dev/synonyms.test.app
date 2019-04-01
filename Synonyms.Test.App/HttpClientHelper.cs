@@ -1,7 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -13,67 +11,62 @@ namespace Synonyms.Test.App
     {
         private static readonly HttpClient _httpClient = new HttpClient();
 
-        public static async Task<T> Get<T>(string queryString)
+        private static void PrepareData(string queryString, object postData, out Uri url, out string data)
         {
             var baseUrl = new Uri(SettingsHelper.BaseUrl);
-            var url = new Uri(baseUrl, queryString);
+            url = new Uri(baseUrl, queryString);
+
+            if (postData != null)
+                data = JsonConvert.SerializeObject(postData);
+            else
+                data = null;
+        }
+
+        private static async Task<T> ParseResponse<T>(HttpResponseMessage result)
+        {
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                string resultContent = await result.Content.ReadAsStringAsync();
+                return JsonConvert.DeserializeObject<T>(resultContent);
+            }
+            else
+            {
+                string resultContent = await result.Content.ReadAsStringAsync();
+                var error = JsonConvert.DeserializeObject<Models.ErrorDetails>(resultContent);
+                throw new Exception(error.Message);
+            }
+        }
+
+        public static async Task<T> Get<T>(string queryString)
+        {
+            PrepareData(queryString, null, out Uri url, out string data);
 
             using (var result = await _httpClient.GetAsync(url))
             {
                 string content = await result.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<T>(content);
+                return await ParseResponse<T>(result);
             }
         }
 
         public static async Task<T> Post<T>(string queryString, object postData)
         {
-            var baseUrl = new Uri(SettingsHelper.BaseUrl);
-            var url = new Uri(baseUrl, queryString);
-
-            var data = JsonConvert.SerializeObject(postData);
+            PrepareData(queryString, postData, out Uri url, out string data);
 
             using (var content = new StringContent(data, Encoding.UTF8, "application/json"))
             {
                 var result = await _httpClient.PostAsync(url, content);
-                if (result.StatusCode == HttpStatusCode.OK)
-                {
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<T>(resultContent);
-                }
-                else
-                {
-                    // Do something with the contents, like write the statuscode and
-                    // contents to a log file
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    throw new Exception(resultContent);
-                    // ... write to log
-                }
+                return await ParseResponse<T>(result);
             }
         }
 
         public static async Task<T> Put<T>(string queryString, object postData)
         {
-            var baseUrl = new Uri(SettingsHelper.BaseUrl);
-            var url = new Uri(baseUrl, queryString);
-
-            var data = JsonConvert.SerializeObject(postData);
+            PrepareData(queryString, postData, out Uri url, out string data);
 
             using (var content = new StringContent(data, Encoding.UTF8, "application/json"))
             {
                 var result = await _httpClient.PutAsync(url, content);
-                if (result.StatusCode == HttpStatusCode.OK)
-                {
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<T>(resultContent);
-                }
-                else
-                {
-                    // Do something with the contents, like write the statuscode and
-                    // contents to a log file
-                    string resultContent = await result.Content.ReadAsStringAsync();
-                    throw new Exception(resultContent);
-                    // ... write to log
-                }
+                return await ParseResponse<T>(result);
             }
         }
     }

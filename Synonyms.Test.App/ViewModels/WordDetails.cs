@@ -10,12 +10,13 @@ namespace Synonyms.Test.App.ViewModels
     /// <summary>
     /// Details for word that is shown on view
     /// </summary>
-    public class WordDetails: ViewModelBase
+    public class WordDetails : ViewModelBase
     {
         #region === Fields ===
 
         string _name;
         string _definition;
+        string _error;
 
         #endregion
 
@@ -30,6 +31,7 @@ namespace Synonyms.Test.App.ViewModels
                 {
                     _name = value;
                     OnPropertyChanged();
+                    OnPropertyChanged("HasNoError");
                 }
             }
         }
@@ -45,6 +47,35 @@ namespace Synonyms.Test.App.ViewModels
                     OnPropertyChanged();
                 }
             }
+        }
+
+        public string Error
+        {
+            get => _error;
+            set
+            {
+                if (_error != value)
+                {
+                    _error = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged("HasNoError");
+                }
+            }
+        }
+
+        public bool HasNoError
+        {
+            get => !string.IsNullOrEmpty(_name) && string.IsNullOrEmpty(_error);
+        }
+
+        public bool HasNoSynonyms
+        {
+            get => Synonyms.Count == 0;
+        }
+
+        public bool HasSynonyms
+        {
+            get => Synonyms.Count != 0;
         }
 
         public ObservableCollection<string> Synonyms { get; set; } = new ObservableCollection<string>();

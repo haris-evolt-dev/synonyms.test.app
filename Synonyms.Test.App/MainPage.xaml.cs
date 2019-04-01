@@ -96,9 +96,15 @@ namespace Synonyms.Test.App
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
                 Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 0);
-                var suggestions = await HttpClientHelper.Get<IEnumerable<string>>(string.Format("Word/Autocomplete?query={0}&limit=5", sender.Text));
-                ASB.ItemsSource = suggestions;
-                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 0);
+                try
+                {
+                    var suggestions = await HttpClientHelper.Get<IEnumerable<string>>(string.Format("Word/Autocomplete?query={0}&limit=5", sender.Text));
+                    ASB.ItemsSource = suggestions;
+                }
+                finally
+                {
+                    Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 0);
+                }
             }
         }
 

@@ -14,17 +14,21 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
-
 namespace Synonyms.Test.App.Pages
 {
     /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
+    /// This page is used for adding a new word along with it's synonyms
     /// </summary>
     public sealed partial class NewWordPage : Page
     {
+        #region === Fields ===
+
         public WordDetails ViewModel { get; set; } = new WordDetails();
         public string Synonym { get; set; }
+
+        #endregion
+
+        #region === Constructors ===
 
         public NewWordPage()
         {
@@ -33,18 +37,36 @@ namespace Synonyms.Test.App.Pages
             sbSynonyms.AddHandler(UIElement.KeyDownEvent, handler, handledEventsToo: true);
         }
 
+        #endregion
+
+        #region === Methods ===
+
         private async void sbSynonyms_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
         {
             if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             {
-                var suggestions = await HttpClientHelper.Get<IEnumerable<string>>(string.Format("Word/Autocomplete?query={0}&limit=5", sender.Text));
-                sbSynonyms.ItemsSource = suggestions;
+                Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Wait, 0);
+                try
+                {
+                    var suggestions = await HttpClientHelper.Get<IEnumerable<string>>(string.Format("Word/Autocomplete?query={0}&limit=5", sender.Text));
+                    sbSynonyms.ItemsSource = suggestions;
+                    sbSynonyms_w.ItemsSource = suggestions;
+                }
+                finally
+                {
+                    Window.Current.CoreWindow.PointerCursor = new Windows.UI.Core.CoreCursor(Windows.UI.Core.CoreCursorType.Arrow, 0);
+                }
+                if (Synonym == ViewModel.Name)
+                    ViewModel.Error = "Word cannot have itself as synonym!";
+                else
+                    ViewModel.Error = "";
             }
         }
 
         private void sbSynonyms_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
         {
-            AddSynonym();
+            if(ViewModel.HasNoError)
+                AddSynonym();
         }
 
         private async void AddWord()
@@ -54,7 +76,13 @@ namespace Synonyms.Test.App.Pages
                 await HttpClientHelper.Post<string>("Word", ViewModel.Name);
                 foreach (var s in ViewModel.Synonyms)
                 {
-                    await HttpClientHelper.Put<string>($"synonym/{ViewModel.Name}", s);
+                    try
+                    {
+                        await HttpClientHelper.Put<string>($"synonym/{ViewModel.Name}", s);
+                    }
+                    catch (Exception ex)
+                    {
+                    }
                 }
                 ViewModel.Name = "";
                 ViewModel.Definition = "";
@@ -75,6 +103,9 @@ namespace Synonyms.Test.App.Pages
             sbSynonyms.Text = string.Empty;
             sbSynonyms_w.Text = string.Empty;
             sbSynonyms.Focus(FocusState.Keyboard);
+
+            ViewModel.OnPropertyChanged("HasNoSynonyms");
+            ViewModel.OnPropertyChanged("HasSynonyms");
         }
 
         private void btnAddWord_Click(object sender, RoutedEventArgs e)
@@ -91,14 +122,19 @@ namespace Synonyms.Test.App.Pages
         {
             string word = (e.OriginalSource as TextBlock)?.DataContext?.ToString();
             ViewModel.Synonyms.Remove(word);
+
+            ViewModel.OnPropertyChanged("HasNoSynonyms");
+            ViewModel.OnPropertyChanged("HasSynonyms");
         }
 
         private void sbSynonyms_KeyDown(object sender, KeyRoutedEventArgs e)
         {
-            if (e.Key == Windows.System.VirtualKey.Enter)
+            if (ViewModel.HasNoError && e.Key == Windows.System.VirtualKey.Enter)
             {
                 AddSynonym();
             }
         }
+
+        #endregion
     }
 }

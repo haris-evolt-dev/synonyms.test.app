@@ -95,10 +95,12 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\BooleanToVisibility.cs" />
     <Compile Include="HttpClientHelper.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\ErrorDetails.cs" />
     <Compile Include="Models\WordDetails.cs" />
     <Compile Include="Pages\NewWordPage.xaml.cs">
       <DependentUpon>NewWordPage.xaml</DependentUpon>
